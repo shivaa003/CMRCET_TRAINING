@@ -1,8 +1,18 @@
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Main {
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(3);  // Thread pool with 3 threads
+
     public static void main(String[] args) {
-        // Create Library
+
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            LibraryAppGUI app = new LibraryAppGUI();  // Instantiate the Swing-based GUI
+            app.setVisible(true);  // Make the window visible
+        });
+
+        
         Library library = new Library();
         Scanner scanner = new Scanner(System.in);
         boolean running = true;
@@ -17,83 +27,100 @@ public class Main {
             System.out.println("6. Exit");
             System.out.print("Choose an option: ");
             
-            int choice = scanner.nextInt();
-            scanner.nextLine();  // Consume newline left-over
+            try {
+                int choice = Integer.parseInt(scanner.nextLine());  // Handle invalid input for menu choice
+                switch (choice) {
+                    case 1: // Add a Book
+                        executorService.submit(() -> {
+                            try {
+                                System.out.print("Enter Book Title: ");
+                                String title = scanner.nextLine();
+                                System.out.print("Enter Author: ");
+                                String author = scanner.nextLine();
+                                System.out.print("Enter ISBN: ");
+                                String isbn = scanner.nextLine();
+                                System.out.print("Enter Number of Pages: ");
+                                int pages = Integer.parseInt(scanner.nextLine());
 
-            switch (choice) {
-                case 1: // Add a Book
-                    System.out.print("Enter Book Title: ");
-                    String title = scanner.nextLine();
-                    System.out.print("Enter Author: ");
-                    String author = scanner.nextLine();
-                    System.out.print("Enter ISBN: ");
-                    String isbn = scanner.nextLine();
-                    System.out.print("Enter Number of Pages: ");
-                    int pages = scanner.nextInt();
-                    scanner.nextLine();  // Consume newline
+                                Book book = new Book(title, author, isbn, pages) {
+                                    @Override
+                                    public void displayDetails() {
+                                        System.out.println("Book Title: " + getTitle());
+                                        System.out.println("Author: " + getAuthor());
+                                        System.out.println("ISBN: " + getIsbn());
+                                        System.out.println("Number of Pages: " + getNumberOfPages());
+                                    }
+                                };
+                                library.addBook(book);
+                            } catch (NumberFormatException e) {
+                                System.out.println("Invalid input for number of pages.");
+                            }
+                        });
+                        break;
 
-                    Book book = new Book(title, author, isbn, pages) {
-                        @Override
-                        public void displayDetails() {
-                            System.out.println("Book Title: " + getTitle());
-                            System.out.println("Author: " + getAuthor());
-                            System.out.println("ISBN: " + getIsbn());
-                            System.out.println("Number of Pages: " + getNumberOfPages());
-                        }
-                    };
-                    library.addBook(book);
-                    break;
+                    case 2: // Add a Comic
+                        executorService.submit(() -> {
+                            try {
+                                System.out.print("Enter Comic Title: ");
+                                String comicTitle = scanner.nextLine();
+                                System.out.print("Enter Author: ");
+                                String comicAuthor = scanner.nextLine();
+                                System.out.print("Enter ISBN: ");
+                                String comicIsbn = scanner.nextLine();
+                                System.out.print("Enter Number of Pages: ");
+                                int comicPages = Integer.parseInt(scanner.nextLine());
+                                System.out.print("Enter Series Name: ");
+                                String seriesName = scanner.nextLine();
+                                System.out.print("Is it Mature Content (true/false): ");
+                                boolean isMatureContent = Boolean.parseBoolean(scanner.nextLine());
 
-                case 2: // Add a Comic
-                    System.out.print("Enter Comic Title: ");
-                    String comicTitle = scanner.nextLine();
-                    System.out.print("Enter Author: ");
-                    String comicAuthor = scanner.nextLine();
-                    System.out.print("Enter ISBN: ");
-                    String comicIsbn = scanner.nextLine();
-                    System.out.print("Enter Number of Pages: ");
-                    int comicPages = scanner.nextInt();
-                    scanner.nextLine();  // Consume newline
-                    System.out.print("Enter Series Name: ");
-                    String seriesName = scanner.nextLine();
-                    System.out.print("Is it Mature Content (true/false): ");
-                    boolean isMatureContent = scanner.nextBoolean();
-                    scanner.nextLine();  // Consume newline
+                                Comic comic = new Comic(comicTitle, comicAuthor, comicIsbn, comicPages, seriesName, isMatureContent);
+                                library.addBook(comic);
+                            } catch (NumberFormatException e) {
+                                System.out.println("Invalid input for number of pages.");
+                            }
+                        });
+                        break;
 
-                    Comic comic = new Comic(comicTitle, comicAuthor, comicIsbn, comicPages, seriesName, isMatureContent);
-                    library.addBook(comic);
-                    break;
+                    case 3: // Add a Library Member
+                        executorService.submit(() -> {
+                            try {
+                                System.out.print("Enter Member Name: ");
+                                String memberName = scanner.nextLine();
+                                System.out.print("Enter Member ID: ");
+                                String memberId = scanner.nextLine();
+                                System.out.print("Enter Member Email: ");
+                                String email = scanner.nextLine();
 
-                case 3: // Add a Library Member
-                    System.out.print("Enter Member Name: ");
-                    String memberName = scanner.nextLine();
-                    System.out.print("Enter Member ID: ");
-                    String memberId = scanner.nextLine();
-                    System.out.print("Enter Member Email: ");
-                    String email = scanner.nextLine();
+                                LibraryMember member = new LibraryMember(memberName, memberId, email);
+                                library.addMember(member);
+                            } catch (Exception e) {
+                                System.out.println("Error adding member: " + e.getMessage());
+                            }
+                        });
+                        break;
 
-                    LibraryMember member = new LibraryMember(memberName, memberId, email);
-                    library.addMember(member);
-                    break;
+                    case 4: // Display All Books
+                        executorService.submit(() -> library.displayAllBooks());
+                        break;
 
-                case 4: // Display All Books
-                    System.out.println("\n--- All Books ---");
-                    library.displayAllBooks();
-                    break;
+                    case 5: // Display All Members
+                        executorService.submit(() -> library.displayAllMembers());
+                        break;
 
-                case 5: // Display All Members
-                    System.out.println("\n--- All Members ---");
-                    library.displayAllMembers();
-                    break;
+                    case 6: // Exit
+                        running = false;
+                        executorService.shutdown();
+                        break;
 
-                case 6: // Exit
-                    running = false;
-                    break;
-
-                default:
-                    System.out.println("Invalid option. Please try again.");
+                    default:
+                        System.out.println("Invalid option. Please try again.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
             }
         }
+
         scanner.close();
     }
 }
