@@ -5,55 +5,113 @@
 
 using namespace std;
 
-void sortedBalance(map<int, int>& m) {
-    vector<pair<int, int>> vec(m.begin(), m.end());
-    sort(vec.begin(), vec.end(), [](pair<int, int> a, pair<int, int> b) {
-        if (a.second == b.second) {
-            return a.first < b.first;
-        }
-        return a.second < b.second;
-    });
-    for (auto& p : vec) {
-        cout << p.first << " " << p.second << endl;
-    }
-}
+class DigitalWallet {
+private:
+    map<int, int> wallet;
 
-void SuccessOrFailure(map<int, int>& m, int* array1, int* array2, int* amount, int n) {
-    for (int i = 0; i < n; i++) {
-        auto it1 = m.find(array1[i]);
-        auto it2 = m.find(array2[i]);
-        if (it1 != m.end() && it2 != m.end() && it1->second > amount[i]) {
-            it2->second += amount[i];
-            it1->second -= amount[i];
-            cout << "Success" << endl;
+public:
+    void addUser(int userID, int initialBalance) {
+        if (wallet.find(userID) == wallet.end()) {
+            wallet[userID] = initialBalance;
+            cout << "User " << userID << " added with balance " << initialBalance << endl;
         } else {
-            cout << "Failure" << endl;
+            cout << "User " << userID << " already exists!" << endl;
         }
     }
-    cout << endl;
+
+    void makeTransaction(int fromUserID, int toUserID, int amount) {
+        if (wallet.find(fromUserID) == wallet.end()) {
+            cout << "Failure: User " << fromUserID << " does not exist!" << endl;
+            return;
+        }
+        if (wallet.find(toUserID) == wallet.end()) {
+            cout << "Failure: User " << toUserID << " does not exist!" << endl;
+            return;
+        }
+        if (wallet[fromUserID] < amount) {
+            cout << "Failure: User " << fromUserID << " has insufficient balance!" << endl;
+            return;
+        }
+
+        wallet[fromUserID] -= amount;
+        wallet[toUserID] += amount;
+        cout << "Success: " << amount << " transferred from User " << fromUserID << " to User " << toUserID << endl;
+    }
+
+    void displaySortedBalances() {
+        vector<pair<int, int>> vec(wallet.begin(), wallet.end());
+        sort(vec.begin(), vec.end(), [](const pair<int, int>& a, const pair<int, int>& b) {
+            if (a.second == b.second) {
+                return a.first < b.first;
+            }
+            return a.second < b.second;
+        });
+
+        cout << "\nSorted Balances:" << endl;
+        for (const auto& p : vec) {
+            cout << "User " << p.first << ": " << p.second << endl;
+        }
+    }
+
+    void showBalance(int userID) {
+        if (wallet.find(userID) != wallet.end()) {
+            cout << "User " << userID << " has balance: " << wallet[userID] << endl;
+        } else {
+            cout << "User " << userID << " does not exist!" << endl;
+        }
+    }
+};
+
+void displayMenu() {
+    cout << "\nDigital Wallet Menu:" << endl;
+    cout << "1. Add a User" << endl;
+    cout << "2. Make a Transaction" << endl;
+    cout << "3. Display Sorted Balances" << endl;
+    cout << "4. Show User Balance" << endl;
+    cout << "5. Exit" << endl;
 }
 
 int main() {
-    int n1;
-    cin >> n1;
-    map<int, int> m;
-    for (int i = 0; i < n1; i++) {
-        int key, value;
-        cin >> key >> value;
-        m[key] = value;
+    DigitalWallet wallet;
+    int choice;
+
+    while (true) {
+        displayMenu();
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1: {
+                int userID, initialBalance;
+                cout << "Enter user ID and initial balance: ";
+                cin >> userID >> initialBalance;
+                wallet.addUser(userID, initialBalance);
+                break;
+            }
+            case 2: {
+                int fromUser, toUser, amount;
+                cout << "Enter transaction (fromUser toUser amount): ";
+                cin >> fromUser >> toUser >> amount;
+                wallet.makeTransaction(fromUser, toUser, amount);
+                break;
+            }
+            case 3:
+                wallet.displaySortedBalances();
+                break;
+            case 4: {
+                int userID;
+                cout << "Enter user ID to check balance: ";
+                cin >> userID;
+                wallet.showBalance(userID);
+                break;
+            }
+            case 5:
+                cout << "Exiting Digital Wallet program..." << endl;
+                return 0;
+            default:
+                cout << "Invalid choice. Please try again!" << endl;
+        }
     }
-    int n2;
-    cin >> n2;
-    int* array1 = new int[n2];
-    int* array2 = new int[n2];
-    int* amount = new int[n2];
-    for (int i = 0; i < n2; i++) {
-        cin >> array1[i] >> array2[i] >> amount[i];
-    }
-    SuccessOrFailure(m, array1, array2, amount, n2);
-    sortedBalance(m);
-    delete[] array1;
-    delete[] array2;
-    delete[] amount;
+
     return 0;
 }
